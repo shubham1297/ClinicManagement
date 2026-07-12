@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ code }} · {{ clinic.clinic_name }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="error-page">
+    <div class="code">{{ code }}</div>
+    <h2>{{ message }}</h2>
+    <a href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('login') }}" class="btn btn-primary" style="margin-top:14px;">
+      {{ "Back to dashboard" if current_user.is_authenticated else "Back to sign in" }}
+    </a>
+  </div>
+</body>
+</html>

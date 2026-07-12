@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit" if patient else "Add" }} Patient · {{ clinic.clinic_name }}{% endblock %}
+{% block content %}
+
+<div class="topline">
+  <div>
+    <div class="eyebrow">{{ "Update record" if patient else "New record" }}</div>
+    <h1>{{ "Edit " + patient.name if patient else "Add Patient" }}</h1>
+  </div>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-outline">← Back to patients</a>
+</div>
+
+<form method="post" id="patient-form">
+  <div class="card" style="margin-bottom: 18px;">
+    <div class="card-header"><h3 style="margin:0;">Patient details</h3></div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="name">Patient name</label>
+        <input type="text" id="name" name="name" required value="{{ patient.name if patient else '' }}">
+      </div>
+      <div class="field">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" name="phone" value="{{ patient.phone if patient else '' }}">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="age">Age</label>
+        <input type="number" id="age" name="age" min="0" max="130" required value="{{ patient.age if patient else '' }}">
+      </div>
+      <div class="field">
+        <label for="gender">Gender</label>
+        <select id="gender" name="gender">
+          <option value="">Select…</option>
+          {% for g in ["Male", "Female", "Other"] %}
+            <option value="{{ g }}" {% if patient and patient.gender == g %}selected{% endif %}>{{ g }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="disease">Diagnosis / condition</label>
+      <input type="text" id="disease" name="disease" required value="{{ patient.disease if patient else '' }}">
+    </div>
+
+    <div class="field">
+      <label for="symptoms">Symptoms</label>
+      <textarea id="symptoms" name="symptoms" placeholder="e.g. Fever, sore throat, mild cough">{{ patient.symptoms if patient else '' }}</textarea>
+    </div>
+
+    <div class="field" style="margin-bottom:0;">
+      <label for="address">Address</label>
+      <textarea id="address" name="address">{{ patient.address if patient else '' }}</textarea>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom: 18px;">
+    <div class="card-header">
+      <h3 style="margin:0;">Medication &amp; dosage</h3>
+      <button type="button" id="add-med-row" class="btn btn-primary btn-sm">+ Add Medicine</button>
+    </div>
+    <p class="hint" style="margin-top:0;">Start typing a medicine name to pull it from your inventory, or type a name that isn't stocked yet — it will still be printed on the prescription.</p>
+
+    <div style="overflow-x:auto;">
+      <table id="med-table">
+        <thead>
+          <tr>
+            <th style="min-width:180px;">Medicine</th>
+            <th style="min-width:110px;">Dose</th>
+            <th style="min-width:100px;">Frequency</th>
+            <th style="min-width:130px;">Timing</th>
+            <th style="min-width:140px;">Duration</th>
+            <th style="min-width:70px;">Qty</th>
+            <th style="min-width:150px;">Instructions</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="med-tbody">
+          {% for m in medications %}
+          <tr>
+            <td><input type="text" name="med_name[]" list="medicine-options" value="{{ m.medicine_name }}" required></td>
+            <td><input type="text" name="med_dose[]" value="{{ m.dose }}" placeholder="1 Tablet"></td>
+            <td>
+              <select name="med_frequency[]">
+                {% for f in ["OD","BD","TDS","QID","SOS","STAT"] %}
+                  <option value="{{ f }}" {% if m.frequency == f %}selected{% endif %}>{{ f }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <select name="med_timing[]">
+                {% for t in ["Before Food","After Food","With Food","Empty Stomach","Bedtime"] %}
+                  <option value="{{ t }}" {% if m.timing == t %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td style="display:flex; gap:4px;">
+              <input type="number" name="med_duration_value[]" min="1" value="{{ m.duration_value }}" style="width:60px;">
+              <select name="med_duration_unit[]">
+                {% for u in ["Days","Weeks","Months"] %}
+                  <option value="{{ u }}" {% if m.duration_unit == u %}selected{% endif %}>{{ u }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td><input type="number" name="med_qty[]" min="1" value="{{ m.quantity }}"></td>
+            <td><input type="text" name="med_instructions[]" value="{{ m.instructions or '' }}" placeholder="e.g. If fever"></td>
+            <td><button type="button" class="btn btn-outline btn-sm remove-med-row">✕</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <datalist id="medicine-options">
+      {% for med in medicines %}
+        <option value="{{ med.display_name }}">
+      {% endfor %}
+    </datalist>
+  </div>
+
+  <div class="actions-row">
+    <button type="submit" class="btn btn-primary">{{ "Save changes" if patient else "Create record" }}</button>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline">Cancel</a>
+  </div>
+</form>
+
+<template id="med-row-template">
+  <tr>
+    <td><input type="text" name="med_name[]" list="medicine-options" required></td>
+    <td><input type="text" name="med_dose[]" placeholder="1 Tablet"></td>
+    <td>
+      <select name="med_frequency[]">
+        <option value="OD">OD</option>
+        <option value="BD" selected>BD</option>
+        <option value="TDS">TDS</option>
+        <option value="QID">QID</option>
+        <option value="SOS">SOS</option>
+        <option value="STAT">STAT</option>
+      </select>
+    </td>
+    <td>
+      <select name="med_timing[]">
+        <option value="Before Food">Before Food</option>
+        <option value="After Food" selected>After Food</option>
+        <option value="With Food">With Food</option>
+        <option value="Empty Stomach">Empty Stomach</option>
+        <option value="Bedtime">Bedtime</option>
+      </select>
+    </td>
+    <td style="display:flex; gap:4px;">
+      <input type="number" name="med_duration_value[]" min="1" value="5" style="width:60px;">
+      <select name="med_duration_unit[]">
+        <option value="Days" selected>Days</option>
+        <option value="Weeks">Weeks</option>
+        <option value="Months">Months</option>
+      </select>
+    </td>
+    <td><input type="number" name="med_qty[]" min="1" value="10"></td>
+    <td><input type="text" name="med_instructions[]" placeholder="e.g. If fever"></td>
+    <td><button type="button" class="btn btn-outline btn-sm remove-med-row">✕</button></td>
+  </tr>
+</template>
+
+<script>
+  (function () {
+    const tbody = document.getElementById('med-tbody');
+    const template = document.getElementById('med-row-template');
+
+    document.getElementById('add-med-row').addEventListener('click', function () {
+      const clone = template.content.cloneNode(true);
+      tbody.appendChild(clone);
+    });
+
+    tbody.addEventListener('click', function (event) {
+      if (event.target.classList.contains('remove-med-row')) {
+        event.target.closest('tr').remove();
+      }
+    });
+
+    // Start every fresh "add patient" form with one empty row for convenience.
+    if (tbody.children.length === 0) {
+      tbody.appendChild(template.content.cloneNode(true));
+    }
+  })();
+</script>
+{% endblock %}

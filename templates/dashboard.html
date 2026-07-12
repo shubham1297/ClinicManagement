@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Patients · {{ clinic.clinic_name }}{% endblock %}
+{% block content %}
+
+<div class="topline">
+  <div>
+    <div class="eyebrow">{{ "All records" if current_user.is_admin else "Your records" }}</div>
+    <h1>Patients</h1>
+  </div>
+  <a href="{{ url_for('add_patient') }}" class="btn btn-primary">+ Add Patient</a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.total }}</div>
+    <div class="stat-label">Matching records</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.this_week }}</div>
+    <div class="stat-label">Added this week</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ diseases|length }}</div>
+    <div class="stat-label">Distinct conditions</div>
+  </div>
+</div>
+
+<div class="card">
+  <form method="get" class="search-bar">
+    <input type="text" name="q" placeholder="Search by name or phone…" value="{{ search }}">
+    <select name="disease">
+      <option value="">All conditions</option>
+      {% for d in diseases %}
+        <option value="{{ d }}" {% if d == disease_filter %}selected{% endif %}>{{ d }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-outline">Filter</button>
+    {% if search or disease_filter %}
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline">Clear</a>
+    {% endif %}
+  </form>
+
+  {% if patients %}
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Condition</th>
+        <th>Phone</th>
+        {% if current_user.is_admin %}<th>Added by</th>{% endif %}
+        <th>Added</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in patients %}
+      <tr>
+        <td><a href="{{ url_for('view_patient', patient_id=p.id) }}"><strong>{{ p.name }}</strong></a></td>
+        <td>{{ p.age }}</td>
+        <td>{{ p.disease }}</td>
+        <td>{{ p.phone or "—" }}</td>
+        {% if current_user.is_admin %}<td>{{ p.created_by.username }}</td>{% endif %}
+        <td>{{ p.created_at.strftime('%d %b %Y') }}</td>
+        <td style="text-align:right;">
+          <a href="{{ url_for('view_patient', patient_id=p.id) }}" class="btn btn-outline btn-sm">View</a>
+          <a href="{{ url_for('prescription_pdf', patient_id=p.id) }}" class="btn btn-gold btn-sm">PDF</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <span class="rx-mark">℞</span>
+    <p>No patient records match your search yet.</p>
+    <a href="{{ url_for('add_patient') }}" class="btn btn-primary">Add your first patient</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

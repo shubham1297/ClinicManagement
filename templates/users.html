@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Users · {{ clinic.clinic_name }}{% endblock %}
+{% block content %}
+
+<div class="topline">
+  <div>
+    <div class="eyebrow">Administration</div>
+    <h1>Users</h1>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header"><h3 style="margin:0;">Existing users</h3></div>
+  <table>
+    <thead>
+      <tr><th>Username</th><th>Full name</th><th>Role</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td><strong>{{ u.username }}</strong></td>
+        <td>{{ u.full_name or "—" }}</td>
+        <td><span class="pill {{ 'pill-admin' if u.is_admin else 'pill-staff' }}">{{ u.role }}</span></td>
+        <td><span class="pill {{ 'pill-active' if u.is_active_user else 'pill-inactive' }}">{{ "Active" if u.is_active_user else "Deactivated" }}</span></td>
+        <td style="text-align:right;">
+          {% if u.id != current_user.id %}
+          <form method="post" action="{{ url_for('toggle_user', user_id=u.id) }}" style="display:inline;">
+            <button type="submit" class="btn btn-outline btn-sm">{{ "Deactivate" if u.is_active_user else "Activate" }}</button>
+          </form>
+          {% else %}
+          <span class="hint">This is you</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header"><h3 style="margin:0;">Add a user</h3></div>
+  <form method="post">
+    <div class="field-row">
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+      </div>
+      <div class="field">
+        <label for="full_name">Full name</label>
+        <input type="text" id="full_name" name="full_name">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="password">Temporary password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+      <div class="field">
+        <label for="role">Role</label>
+        <select id="role" name="role">
+          <option value="staff">Staff</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Create user</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ patient.name }} · {{ clinic.clinic_name }}{% endblock %}
+{% block content %}
+
+<div class="topline">
+  <div>
+    <div class="eyebrow">Patient record</div>
+    <h1>{{ patient.name }}</h1>
+  </div>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-outline">← Back to patients</a>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 style="margin:0;">Medical details</h3>
+    <div class="actions-row" style="margin:0;">
+      <a href="{{ url_for('prescription_pdf', patient_id=patient.id) }}" class="btn btn-gold btn-sm">Generate PDF</a>
+      <a href="{{ url_for('edit_patient', patient_id=patient.id) }}" class="btn btn-outline btn-sm">Edit</a>
+      <a href="{{ url_for('prescription_history', patient_id=patient.id) }}" class="btn btn-outline btn-sm">History ({{ patient.prescriptions|length }})</a>
+      {% if current_user.is_admin %}
+      <form method="post" action="{{ url_for('delete_patient', patient_id=patient.id) }}" onsubmit="return confirm('Delete this patient record permanently? This cannot be undone.');" style="display:inline;">
+        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail-item"><div class="k">Age / Gender</div><div class="v">{{ patient.age }} yrs{% if patient.gender %} · {{ patient.gender }}{% endif %}</div></div>
+    <div class="detail-item"><div class="k">Phone</div><div class="v">{{ patient.phone or "—" }}</div></div>
+    <div class="detail-item full"><div class="k">Diagnosis / condition</div><div class="v">{{ patient.disease }}</div></div>
+    {% if patient.symptoms %}
+    <div class="detail-item full"><div class="k">Symptoms</div><div class="v">{{ patient.symptoms }}</div></div>
+    {% endif %}
+    {% if patient.address %}
+    <div class="detail-item full"><div class="k">Address</div><div class="v">{{ patient.address }}</div></div>
+    {% endif %}
+    <div class="detail-item"><div class="k">Added by</div><div class="v">{{ patient.created_by.username }}</div></div>
+    <div class="detail-item"><div class="k">Added on</div><div class="v">{{ patient.created_at.strftime('%d %b %Y, %H:%M') }}</div></div>
+  </div>
+
+  <h3 style="margin-top:22px;">Medication &amp; dosage</h3>
+  {% if patient.medications %}
+  <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr><th>Medicine</th><th>Dose</th><th>Frequency</th><th>Timing</th><th>Duration</th><th>Qty</th><th>Instructions</th></tr>
+      </thead>
+      <tbody>
+        {% for m in patient.medications %}
+        <tr>
+          <td><strong>{{ m.medicine_name }}</strong></td>
+          <td>{{ m.dose or "—" }}</td>
+          <td>{{ m.frequency }}</td>
+          <td>{{ m.timing }}</td>
+          <td>{{ m.duration_display }}</td>
+          <td>{{ m.quantity }}</td>
+          <td>{{ m.instructions or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="hint">No medication added yet. <a href="{{ url_for('edit_patient', patient_id=patient.id) }}">Add some</a> before generating a prescription.</p>
+  {% endif %}
+</div>
+{% endblock %}

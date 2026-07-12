@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Medicines · {{ clinic.clinic_name }}{% endblock %}
+{% block content %}
+
+<div class="topline">
+  <div>
+    <div class="eyebrow">Inventory</div>
+    <h1>Medicine Management</h1>
+  </div>
+  <a href="{{ url_for('add_medicine') }}" class="btn btn-primary">+ Add Medicine</a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.total }}</div>
+    <div class="stat-label">Medicines in inventory</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color: var(--warning);">{{ stats.low }}</div>
+    <div class="stat-label">Low stock</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color: var(--danger);">{{ stats.out }}</div>
+    <div class="stat-label">Out of stock</div>
+  </div>
+</div>
+
+<div class="card">
+  <form method="get" class="search-bar" style="align-items:center;">
+    <input type="text" name="q" placeholder="Search by name, generic or brand…" value="{{ search }}">
+    <select name="category">
+      <option value="">All categories</option>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+    <select name="manufacturer">
+      <option value="">All manufacturers</option>
+      {% for m in manufacturers %}
+        <option value="{{ m }}" {% if m == manufacturer %}selected{% endif %}>{{ m }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-outline">Filter</button>
+    {% if search or category or manufacturer or stock_filter %}
+      <a href="{{ url_for('medicines_dashboard') }}" class="btn btn-outline">Clear</a>
+    {% endif %}
+  </form>
+
+  <div style="display:flex; gap:8px; margin-bottom:18px;">
+    {% for label, value in [("All", ""), ("In Stock", "in"), ("Low Stock", "low"), ("Out of Stock", "out")] %}
+      <a href="{{ url_for('medicines_dashboard', q=search, category=category, manufacturer=manufacturer, stock=value) }}"
+         class="btn btn-sm {{ 'btn-primary' if stock_filter == value else 'btn-outline' }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  {% if medicines %}
+  <table>
+    <thead>
+      <tr>
+        <th>Medicine</th><th>Strength</th><th>Category</th><th>Stock</th><th>Price</th><th>Expiry</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in medicines %}
+      <tr>
+        <td>
+          <strong>{{ m.name }}</strong>
+          {% if m.brand_name %}<div class="hint">{{ m.brand_name }}</div>{% endif %}
+        </td>
+        <td>{{ m.strength or "—" }}</td>
+        <td>{{ m.category }}</td>
+        <td>
+          {{ m.stock_qty }}
+          <span class="pill pill-{{ m.stock_status }}">
+            {{ "In Stock" if m.stock_status == "in" else ("Low Stock" if m.stock_status == "low" else "Out of Stock") }}
+          </span>
+        </td>
+        <td>₹{{ "%.2f"|format(m.unit_price) }}</td>
+        <td>{{ m.expiry_date.strftime('%m/%y') if m.expiry_date else "—" }}</td>
+        <td style="text-align:right;">
+          <a href="{{ url_for('edit_medicine', medicine_id=m.id) }}" class="btn btn-outline btn-sm">Edit</a>
+          <form method="post" action="{{ url_for('delete_medicine', medicine_id=m.id) }}" style="display:inline;"
+                onsubmit="return confirm('Remove {{ m.name }} from inventory?');">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <span class="rx-mark">℞</span>
+    <p>No medicines match your search yet.</p>
+    <a href="{{ url_for('add_medicine') }}" class="btn btn-primary">Add your first medicine</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

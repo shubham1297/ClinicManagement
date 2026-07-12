@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}History · {{ patient.name }}{% endblock %}
+{% block content %}
+
+<div class="topline">
+  <div>
+    <div class="eyebrow">Prescription history</div>
+    <h1>{{ patient.name }}</h1>
+  </div>
+  <a href="{{ url_for('view_patient', patient_id=patient.id) }}" class="btn btn-outline">← Back to record</a>
+</div>
+
+<div class="card">
+  {% if patient.prescriptions %}
+    {% for rx in patient.prescriptions %}
+    <div class="history-item" style="display:block;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px;">
+        <div><strong>{{ rx.disease }}</strong>{% if rx.symptoms %} <span class="hint">— {{ rx.symptoms }}</span>{% endif %}</div>
+        <div class="meta" style="text-align:right; white-space:nowrap;">
+          {{ rx.created_at.strftime('%d %b %Y, %H:%M') }}<br>
+          by {{ rx.generated_by.username }}
+        </div>
+      </div>
+      {% if rx.items %}
+      <div style="overflow-x:auto; margin-top:10px;">
+        <table>
+          <thead>
+            <tr><th>Medicine</th><th>Dose</th><th>Frequency</th><th>Timing</th><th>Duration</th><th>Qty</th><th>Instructions</th></tr>
+          </thead>
+          <tbody>
+            {% for item in rx.items %}
+            <tr>
+              <td>{{ item.medicine_name }}</td>
+              <td>{{ item.dose or "—" }}</td>
+              <td>{{ item.frequency }}</td>
+              <td>{{ item.timing }}</td>
+              <td>{{ item.duration_display }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.instructions or "—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="hint" style="margin-top:8px;">No medication was recorded for this prescription.</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="empty-state">
+    <span class="rx-mark">℞</span>
+    <p>No prescriptions generated yet. Each PDF you print is logged here.</p>
+    <a href="{{ url_for('prescription_pdf', patient_id=patient.id) }}" class="btn btn-gold">Generate first prescription</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

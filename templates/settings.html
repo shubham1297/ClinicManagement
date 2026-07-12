@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Clinic Settings · {{ clinic.clinic_name }}{% endblock %}
+{% block content %}
+
+<div class="topline">
+  <div>
+    <div class="eyebrow">Administration</div>
+    <h1>Clinic Settings</h1>
+  </div>
+</div>
+
+<div class="card">
+  <p class="hint" style="margin-top:0; margin-bottom:18px;">These details appear in the header of every generated prescription PDF.</p>
+  <form method="post">
+    <div class="field">
+      <label for="clinic_name">Clinic name</label>
+      <input type="text" id="clinic_name" name="clinic_name" required value="{{ settings.clinic_name }}">
+    </div>
+    <div class="field">
+      <label for="tagline">Tagline (optional)</label>
+      <input type="text" id="tagline" name="tagline" value="{{ settings.tagline }}" placeholder="e.g. General Physician & Family Care">
+    </div>
+    <div class="field">
+      <label for="address">Address</label>
+      <input type="text" id="address" name="address" required value="{{ settings.address }}">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" name="phone" value="{{ settings.phone }}">
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="{{ settings.email }}">
+      </div>
+    </div>
+    <div class="field">
+      <label for="registration_no">Registration number (optional)</label>
+      <input type="text" id="registration_no" name="registration_no" value="{{ settings.registration_no }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Save clinic details</button>
+  </form>
+</div>
+{% endblock %}
